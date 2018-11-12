@@ -1,0 +1,41 @@
+version: "3"
+services:
+  prom:
+    image: quay.io/prometheus/prometheus:v2.2.0
+    volumes:
+     - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
+    ports:
+     - 9090:9090
+    depends_on:
+     - exporter
+  exporter:
+    image: prom/node-exporter:latest
+    ports:
+     - "9100:9100"
+  grafana:
+    image: grafana/grafana:5.0.4
+    ports:
+     - "3000:3000"
+    depends_on:
+      - prom
+  zookeeper:
+    image: confluent/zookeeper
+    hostname: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      zk_id: "1"
+  kafka:
+    image: confluent/kafka
+    hostname: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9999:9999"
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_JMX_PORT: "9999"
+      KAFKA_JMX_HOSTNAME: "kafka"
+      KAFKA_BROKER_ID: "0"
