@@ -26,7 +26,7 @@ services:
     ports:
       - 5556:5556
     volumes:
-      -  ./monitor/jmx-exporter.yml:/opt/jmx_exporter/config.yml
+      -  ./config/jmx/jmx-exporter.yml:/opt/jmx_exporter/config.yml
     depends_on:
       - kafka
 

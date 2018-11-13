@@ -545,7 +545,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum without(instance, pod)(rate(kafka_server_brokertopicmetrics_messagesin_total{job=\"kafka-hs\",topic!=\"\"}[5m]))",
+          "expr": "sum by(topic) (rate(kafka_server_brokertopicmetrics_messagesin_total{topic!=\"\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{topic}}",
@@ -635,7 +635,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum without(instance, pod)(rate(kafka_server_brokertopicmetrics_bytesin_total{job=\"kafka-hs\",topic!=\"\"}[5m]))",
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_bytesin_total{topic!=\"\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{topic}}",
@@ -727,7 +727,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum without(instance, pod)(rate(kafka_server_brokertopicmetrics_bytesout_total{job=\"kafka-hs\",topic!=\"\"}[5m]))",
+          "expr": "sum by (topic) (rate(kafka_server_brokertopicmetrics_bytesout_total{topic!=\"\"}[5m]))",
           "format": "time_series",
           "intervalFactor": 2,
           "legendFormat": "{{topic}}",
