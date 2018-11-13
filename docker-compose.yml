@@ -1,41 +1,57 @@
-version: "3"
+version: '3'
 services:
-  prom:
-    image: quay.io/prometheus/prometheus:v2.2.0
-    volumes:
-     - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
-    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
-    ports:
-     - 9090:9090
-    depends_on:
-     - exporter
-  exporter:
-    image: prom/node-exporter:latest
-    ports:
-     - "9100:9100"
-  grafana:
-    image: grafana/grafana:5.0.4
-    ports:
-     - "3000:3000"
-    depends_on:
-      - prom
   zookeeper:
-    image: confluent/zookeeper
-    hostname: zookeeper
+    image: wurstmeister/zookeeper
     ports:
       - "2181:2181"
-    environment:
-      zk_id: "1"
+
   kafka:
-    image: confluent/kafka
-    hostname: kafka
-    depends_on:
-      - zookeeper
+    image: wurstmeister/kafka
     ports:
       - "9092:9092"
       - "9999:9999"
+    depends_on:
+      - zookeeper
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_JMX_PORT: "9999"
-      KAFKA_JMX_HOSTNAME: "kafka"
-      KAFKA_BROKER_ID: "0"
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_CREATE_TOPICS: transactions:1:1
+      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9999
+      JMX_PORT: 9999
+
+  jmx_kafka:
+    image: sscaling/jmx-prometheus-exporter
+    ports:
+      - 5556:5556
+    volumes:
+      -  ./monitor/jmx-exporter.yml:/opt/jmx_exporter/config.yml
+    depends_on:
+      - kafka
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+    command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
+    ports:
+      - 9090:9090
+    depends_on:
+      - jmx_kafka
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_NAME: "Main Org."
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards
