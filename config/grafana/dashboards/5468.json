@@ -355,11 +355,11 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "sum without(area)(jvm_memory_bytes_used{job=\"kafka-hs\"})",
+          "expr": "jvm_memory_bytes_used",
           "format": "time_series",
           "hide": true,
           "intervalFactor": 2,
-          "legendFormat": "{{pod}}",
+          "legendFormat": "{{area}}",
           "metric": "jvm_memory_bytes_used",
           "refId": "A",
           "step": 4
