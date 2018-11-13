@@ -3,6 +3,7 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: jmx
+  - job_name: kafka-hs
     static_configs:
-      - targets: ['jmx_kafka:5556']
+      - targets: ['kafka:7071']
+      #- targets: ['jmx_kafka:5556']

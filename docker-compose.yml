@@ -10,6 +10,7 @@ services:
     ports:
       - "9092:9092"
       - "9999:9999"
+      - 7071:7071
     depends_on:
       - zookeeper
     environment:
@@ -18,8 +19,17 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_CREATE_TOPICS: transactions:1:1
-      KAFKA_JMX_OPTS: -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9999
+      KAFKA_JMX_OPTS: >-
+        -Dcom.sun.management.jmxremote
+        -Dcom.sun.management.jmxremote.authenticate=false
+        -Dcom.sun.management.jmxremote.ssl=false
+        -Djava.rmi.server.hostname=kafka
+        -Dcom.sun.management.jmxremote.rmi.port=9999
+        -javaagent:/tmp/agent/jmx_prometheus_javaagent.jar=7071:/tmp/agent/jmx-exporter.yml
       JMX_PORT: 9999
+    volumes:
+      - ./agent/jmx_prometheus_javaagent-0.10.jar:/tmp/agent/jmx_prometheus_javaagent.jar
+      - ./config/jmx/jmx-exporter.yml:/tmp/agent/jmx-exporter.yml
 
   jmx_kafka:
     image: sscaling/jmx-prometheus-exporter
@@ -33,7 +43,7 @@ services:
   prometheus:
     image: prom/prometheus
     volumes:
-      - ./monitor/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command: "--config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus"
     ports:
       - 9090:9090
